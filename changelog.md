@@ -1,3 +1,6 @@
+## v1.2.1
+- **Added** bump geode version
+
 ## v1.2.0
 - **Added** optimise finding things a ton
 - **Added** select objects with groups toggle (suggested by **Akurio64**)
