@@ -1,44 +1,78 @@
 {
-	"geode": "4.4.0",
+	"geode": "5.7.1",
 	"gd": {
-		"win": "2.2074",
-		"android": "2.2074",
-		"mac": "2.2074",
-		"ios": "2.2074"
+		"win": "2.2081",
+		"android": "2.2081",
+		"mac": "2.2081",
+		"ios": "2.2081"
 	},
 	"id": "nwo5.trigger_id_search",
 	"name": "Trigger ID Search",
-	"version": "v1.2.0",
+	"version": "v2.0.0",
 	"developer": "Nwo5",
-	"description": "Search for triggers by id.",
+	"description": "find stuff by id but better !",
+	"tags": ["editor", "utility", "enhancement", "offline"],
+	"links": {
+		"source": "https://github.com/Nwo5-trg/Nwo5-Silly-API",
+		"community": "https://discord.gg/AeFeYWGUxZ"
+	},
+	"dependencies": {
+		"nwo5.silly-api": ">=1.5.0"
+	},
 	"resources": {
 		"sprites": [
 			"resources/*.png"
 		]
 	},
 	"settings": {
-		"include-current-selection": {
+		"list-and": {
 			"type": "bool",
-			"name": "Include Current Selection",
+			"name": "List And",
 			"default": false,
-			"description": "If false, deselects all currently selected objects when selecting filtered triggers."
+			"description": "when providing multiple ids, treat it as all ids need to match instead of any (only rly useful in find group mode)"
+		},
+		"search-mode": {
+			"type": "string",
+			"name": "Search Mode",
+			"default": "All",
+			"one-of": ["All", "Primary", "Secondary", "All Targets", "Primary Input", "Secondary Input", "All Inputs"],
+			"description": "u can read a bit more abt these if u look at https://github.com/Nwo5-trg/Nwo5-Silly-API/blob/main/include/editor/trigger.hpp"
 		},
 		"auto-delete": {
 			"type": "bool",
 			"name": "Auto Delete",
-			"default": false
+			"default": false,
+			"description": "delete anything found"
 		},
-		"update-editor": {
+		"include-current-selection": {
 			"type": "bool",
-			"name": "Update Editor",
+			"name": "Include Current Selection",
+			"default": false,
+			"description": "whether to *not* deselect current selection before searching"
+		},
+		"use-selection-as-filter": {
+			"type": "bool",
+			"name": "Use Selection As Filter",
 			"default": true,
-			"description": "Updates editor buttons when selecting filtered triggers."
+			"description": "only search for objects in selection if this is enabled (if no objs are selected then search all objs)"
+		},
+		"move-camera-to-selection": {
+			"type": "bool",
+			"name": "Move Camera To Selection",
+			"default": true
+		},
+		"zoom-limit": {
+			"type": "float",
+			"name": "Camera Zoom Limit",
+			"default": 0.25,
+			"description": "how far the camera can zoom out if move to selection is enabled",
+			"enable-if": "move-camera-to-selection"
 		},
 		"close-on-select": {
 			"type": "bool",
 			"name": "Close On Select",
 			"default": true,
-			"description": "Closes the popup when you filter triggers."
+			"description": "close popup after searching"
 		}
 	}
 }

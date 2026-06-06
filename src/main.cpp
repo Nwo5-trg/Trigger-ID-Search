@@ -1,115 +1,239 @@
-#include <Geode/Geode.hpp>
-#include <Geode/modify/SetIDPopup.hpp>
+#include <Geode/modify/FindObjectPopup.hpp>
+#include <nwo5.silly-api/include/include.hpp>
+#include <Geode/ui/GeodeUI.hpp>
+#include "settings.hpp"
+#include <ranges>
 
+using namespace nwo5::prelude;
 using namespace geode::prelude;
 
-auto mod = Mod::get();
-
-std::unordered_set<int> collisionObjects {
-    1815, 1816, 3609, 3640
+enum class SearchMode {
+    All,
+    Primary,
+    Secondary,
+    AllTargets,
+    PrimaryInput,
+    SecondaryInput,
+    AllInputs
 };
 
-std::unordered_set<int> getIntSet(std::string input) {
-    std::unordered_set<int> intSet;
-    auto start = 0;
-    while (true) {
-        auto comma = input.find(',', start);
-        intSet.insert(std::strtol(input.substr(start, comma - start).c_str(), nullptr, 10));
-        if (comma == std::string::npos) break;
-        start = comma + 1;
-    }
-    return intSet;
+// very very silly but wtv makes storing shit in tags easier
+enum class FindType {
+    Group = enum_cast<int>(editor::trigger::InputType::Group),
+    Item = enum_cast<int>(editor::trigger::InputType::Item),
+    Collision = enum_cast<int>(editor::trigger::InputType::Collision)
+};
+
+static auto getSearchMode() {
+    static std::unordered_map<std::string, SearchMode> map{
+        {"All", SearchMode::All}, {"Primary", SearchMode::Primary},
+        {"Secondary", SearchMode::Secondary},{"All Targets", SearchMode::AllTargets},
+        {"Primary Input", SearchMode::PrimaryInput}, {"Secondary Input", SearchMode::SecondaryInput},
+        {"All Inputs", SearchMode::AllInputs}
+    };
+
+    return map[Settings::searchMode];
 }
 
-
-class $modify(IDPopup, SetIDPopup) {
+class $modify(FindObjectPopupHook, FindObjectPopup) {
     struct Fields {
         bool findGroups = false;
     };
 
-    bool init(int current, int begin, int end, gd::string title, gd::string button, bool p5, int p6 , float p7, bool p8, bool p9) {
-        if(!SetIDPopup::init(current, begin, end, title, button, p5, p6, p7, p8, p9)) return false;
-        if (typeinfo_cast<FindObjectPopup*>(this)) {
-            auto menu = this->getChildByType<CCLayer>(0)->getChildByType<CCMenu>(0);
-            for (int i = 0; i < 3; i++) {
-                auto button = CCMenuItemSpriteExtra::create(CCSprite::create(("nwo5.trigger_id_search/button" + std::to_string(i) + ".png").c_str()), this, menu_selector(IDPopup::findTriggers));
-                button->setPosition(ccp(86, 0 + (i * 40)));
-                button->setScale(0.75);
-                button->m_baseScale = 0.75;
-                auto valueNode = CCNode::create();
-                valueNode->setID(std::to_string(i));
-                button->addChild(valueNode);
-                menu->addChild(button);
+    static bool filterObject(GameObject* pObj, SearchMode pSearchMode, FindType pType, bool pFindGroup, int pID) {
+        namespace trigger = editor::trigger;
+
+        if (pFindGroup) {
+            switch (pType) {
+                case FindType::Group: {
+                    return editor::object::hasGroup(pObj, pID);
+                }
+                case FindType::Item: {
+                    return pObj->m_objectID == trigger::COUNTER_LABEL && trigger::primaryTarget(pObj) == pID;
+                }
+                case FindType::Collision: {
+                    return pObj->m_objectID == trigger::COLLISION_BLOCK && trigger::primaryTarget(pObj) == pID;
+                }
             }
-            auto input = this->getChildByType<CCLayer>(0)->getChildByType<CCTextInputNode>(0);
-            input->setAllowedChars("1234567890,");
-            input->setMaxLabelLength(999);
-            auto toggler = CCMenuItemToggler::create(CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png"),
-            CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png"), this, menu_selector(IDPopup::onToggleMode));
-            toggler->setPosition(ccp(-86, 0));
-            menu->addChild(toggler);
         }
+
+        const auto type = enum_cast<trigger::InputType>(pType);
+
+        if (!trigger::is(pObj) || pObj->m_objectID == trigger::COUNTER_LABEL || pObj->m_objectID == trigger::COLLISION_BLOCK) {
+            return false;
+        }
+
+        const std::array<int, 4> ids{
+            trigger::primaryTargetType(pObj) == type ? trigger::primaryTarget(pObj) : 0,
+            trigger::secondaryTargetType(pObj) == type ? trigger::secondaryTarget(pObj) : 0,
+            trigger::primaryInputType(pObj) == type ? trigger::primaryInput(pObj) : 0,
+            trigger::secondaryInputType(pObj) == type ? trigger::secondaryInput(pObj) : 0,
+        };
+
+        switch (pSearchMode) {
+            case SearchMode::All: {
+                return ids[0] == pID || ids[1] == pID || ids[2] == pID || ids[3] == pID;
+            }
+            case SearchMode::Primary: {
+                return ids[0] == pID;
+            }
+            case SearchMode::Secondary: {
+                return ids[1] == pID;
+            }
+            case SearchMode::AllTargets: {
+                return ids[0] == pID || ids[1] == pID;
+            }
+            case SearchMode::PrimaryInput: {
+                return ids[2] == pID;
+            }
+            case SearchMode::SecondaryInput: {
+                return ids[3] == pID;
+            }
+            case SearchMode::AllInputs: {
+                return ids[2] == pID || ids[3] == pID;
+            }
+        }
+    }
+
+    bool init() {
+        if (!FindObjectPopup::init()) {
+            return false;
+        }
+
+        auto bg = m_mainLayer->getChildByType<CCScale9Sprite>(0);
+
+        if (!bg) {
+            return true;
+        }
+
+        auto menu = ui::node(Setup(ui::menu(ui::verticalDistrbLayout(2.5f)))
+            .id("button-menu"_spr)
+            // blame touch prio for as to why this is in button menu
+            .pos(
+                bg->getPosition() + (ccp(bg->getScaledContentWidth(), -bg->getScaledContentHeight()) / 2) 
+                - m_buttonMenu->getPosition() + ccp(-5.0f, 5.0f)
+            )
+            .anchor(1.0f, 0.0f)
+            .parent(m_buttonMenu)
+        );
+
+        for (int i = 0; i < 3; i++) {
+            auto button = ui::node(Setup(ui::buttonSprite(
+                fmt::format("button{}.png"_spr, i), this, menu_selector(FindObjectPopupHook::onFindTriggers)
+            ))
+                .id("button-{}"_spr, i)
+                .scaleToFit(30.0f)
+                .tag(i)
+                .parent(menu)
+            );
+        }
+
+        auto findGroupsToggle = ui::node(Setup(ui::togglerBase(
+            this, menu_selector(FindObjectPopupHook::onToggleFindGroups)
+        ))
+            .id("find-groups-toggle"_spr)
+            .pos(
+                bg->getPosition() - (bg->getScaledContentSize() / 2) 
+                - m_buttonMenu->getPosition() + ccp(20.0f, 20.0f)
+            )
+            .scaleToFit(30.0f)
+            .parent(m_buttonMenu)
+        );
+
+        auto settingsButton = ui::node(Setup(ui::buttonFrame(
+                "GJ_optionsBtn_001.png", this, menu_selector(FindObjectPopupHook::onIDSearchSettings)
+            ))
+                .id("id-seach-settings-button"_spr)
+                // remind me to make a better system for positioning in popups with setup cuz this is js wacky
+                .pos(
+                    bg->getPosition() + (bg->getScaledContentSize() / 2) 
+                    - m_buttonMenu->getPosition() - ccp(20.0f, 20.0f)
+                )
+                .scaleToFit(30.0f)
+                .parent(m_buttonMenu)
+            );
+
+        m_inputNode->setAllowedChars("1234567890,");
+        m_inputNode->setMaxLabelLength(9999);
+
+        this->getChildByType<CCLabelBMFont>(0)->setString("Find ID");
+        
         return true;
     }
 
-    void findTriggers(CCObject* sender) {
-        int type = stoi(static_cast<CCNode*>(sender)->getChildByType<CCNode>(1)->getID());
-        if (m_fields->findGroups) type = -1;
-        auto editUI = EditorUI::get();
-        auto editor = LevelEditorLayer::get();
-        auto objs = type == -1 ? editor->m_objects : editor->m_drawGridLayer->m_effectGameObjects;
-        auto groups = getIntSet(std::string(m_inputNode->getString()));
-        CCArray foundObjs;
-        for (auto obj : CCArrayExt<GameObject*>(objs)) if (hasID(obj, groups, type)) foundObjs.addObject(obj);
-            
-        // for (int id : getIntVector(input)) { // i could optimise this to o(n) but fuck off
-        //     if (id < 1 || id > 9999) continue;
-        //     for (auto obj : CCArrayExt<GameObject*>(objs)) {
-        //         if (auto trigger = typeinfo_cast<EffectGameObject*>(obj)) {
-        //             if (hasID(trigger, id, type)) triggers.addObject(trigger);
-        //         }
-        //     }
-        // }
-        if (!mod->getSettingValue<bool>("include-current-selection") || mod->getSettingValue<bool>("auto-delete")) editUI->deselectAll();
-        editUI->selectObjects(&foundObjs, true);
-        if (mod->getSettingValue<bool>("auto-delete")) editUI->m_trashBtn->activate();
-        if (mod->getSettingValue<bool>("update-editor") && !mod->getSettingValue<bool>("auto-delete")) {
-            editUI->updateButtons();
-            editUI->updateDeleteButtons();
-            editUI->updateEditMenu();
-            editUI->updateGridNodeSize();
-            editUI->updateObjectInfoLabel();
+    // i love std::ranges shenanigans gotta b one of my favorite genders (idek if its more readable than js manually writing shit out but its fun)
+    void onFindTriggers(CCObject* pSender) {
+        const auto type = enum_cast<FindType>(pSender->getTag());
+
+        const auto split = string::splitView(std::string(m_inputNode->getString().c_str()), ",");
+        const auto groups = std::ranges::to<std::vector>(
+            std::views::transform(split, [] (const auto& pStr) { return utils::numFromString<int>(pStr).unwrapOrDefault(); })
+        );
+
+        const auto findGroups = m_fields->findGroups;
+        const auto searchMode = getSearchMode();
+
+        auto foundObjs = CCArray::create();
+
+        const bool selectionFilter = Settings::useSelectionAsFilter && !editor::selection::empty();
+        auto objs = selectionFilter ? editor::selection::get() : editor::layer()->m_objects;
+
+        for (auto obj : CCArrayExt<GameObject*>(objs)) {
+            if (Settings::listAnd) {
+                if (!std::ranges::all_of(groups, [&] (int pID) {
+                    return filterObject(obj, searchMode, type, findGroups, pID); 
+                })) {
+                    continue;
+                }
+            }
+            else {
+                if (!std::ranges::any_of(groups, [&] (int pID) {
+                    return filterObject(obj, searchMode, type, findGroups, pID); 
+                })) {
+                    continue;
+                }
+            }
+
+            foundObjs->addObject(obj);
         }
-        if (mod->getSettingValue<bool>("close-on-select")) this->getChildByType<CCLayer>(0)->getChildByType<CCMenu>(0)->getChildByType<CCMenuItemSpriteExtra>(3)->activate();
+        
+        // kinda crazy nesting but wtv
+        if (Settings::autoDelete) {
+            editor::object::remove(foundObjs, true);
+        }
+        else {
+            if (Settings::includeCurrentSelection && !selectionFilter) {
+                editor::selection::add(foundObjs);
+            }
+            else {
+                editor::selection::set(foundObjs);
+            }
+
+            if (Settings::moveCameraToSelection) {
+                const auto bounds = editor::object::bounds(foundObjs);
+
+                editor::move(bounds.origin + bounds.size / 2);
+                editor::setZoom(
+                    std::clamp(
+                        ccMax(CCDirector::get()->getWinSize()) / ccMax(bounds.size), 
+                        editor::zoom(), Settings::zoomLimit.get()
+                    )
+                );
+            }
+        }
+
+        editor::update();
+
+        if (Settings::closeOnSelect) {
+            this->onClose(nullptr);
+        }
     }
 
-    void onToggleMode(CCObject* sender) {
+    void onIDSearchSettings(CCObject*) {
+        openSettingsPopup(Mod::get(), true);
+    }
+
+    void onToggleFindGroups(CCObject*) {
         m_fields->findGroups = !m_fields->findGroups;
     }
-
-    bool hasID(GameObject* gameObj, std::unordered_set<int> id, int filterType) {
-        if (filterType == 0) {
-            auto obj = static_cast<EffectGameObject*>(gameObj);
-            if (id.contains(obj->m_targetGroupID)) return true;
-            if (id.contains(obj->m_centerGroupID)) return true;
-            if (id.contains(obj->m_targetModCenterID)) return true;
-            if (id.contains(obj->m_rotationTargetID)) return true;
-        }
-        if (filterType == 1 && !collisionObjects.contains(gameObj->m_objectID)) {
-            auto obj = static_cast<EffectGameObject*>(gameObj);
-            if (id.contains(obj->m_itemID)) return true;
-            if (id.contains(obj->m_itemID2)) return true;
-        }
-        if (filterType == 2 && collisionObjects.contains(gameObj->m_objectID)) {
-            auto obj = static_cast<EffectGameObject*>(gameObj);
-            if (id.contains(obj->m_itemID)) return true;
-            if (id.contains(obj->m_itemID2)) return true;
-        }
-        if (filterType == -1) {
-            auto groups = gameObj->m_groups;
-            if (!groups) return false;
-            for (auto group : *groups) if (id.contains(group)) return true;
-        }
-        return false;
-    }   
 };
