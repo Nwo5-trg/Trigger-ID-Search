@@ -108,14 +108,15 @@ class $modify(FindObjectPopupHook, FindObjectPopup) {
 
         auto menu = ui::node(Setup(ui::menu(ui::verticalDistrbLayout(2.5f)))
             .id("button-menu"_spr)
-            // blame touch prio for as to why this is in button menu
             .pos(
                 bg->getPosition() + (ccp(bg->getScaledContentWidth(), -bg->getScaledContentHeight()) / 2) 
-                - m_buttonMenu->getPosition() + ccp(-5.0f, 5.0f)
+                + ccp(-5.0f, 5.0f)
             )
             .anchor(1.0f, 0.0f)
-            .parent(m_buttonMenu)
+            .parent(m_mainLayer)
         );
+        // gah
+        menu->setTouchPriority(-510);
 
         for (int i = 0; i < 3; i++) {
             auto button = ui::node(Setup(ui::buttonSprite(
@@ -197,7 +198,6 @@ class $modify(FindObjectPopupHook, FindObjectPopup) {
             foundObjs->addObject(obj);
         }
         
-        // kinda crazy nesting but wtv
         if (Settings::autoDelete) {
             editor::object::remove(foundObjs, true);
         }
@@ -215,8 +215,8 @@ class $modify(FindObjectPopupHook, FindObjectPopup) {
                 editor::move(bounds.origin + bounds.size / 2);
                 editor::setZoom(
                     std::clamp(
-                        ccMax(CCDirector::get()->getWinSize()) / ccMax(bounds.size), 
-                        editor::zoom(), Settings::zoomLimit.get()
+                        (CCDirector::get()->getWinSize().width / bounds.size.width) / 1.5f, 
+                        Settings::zoomLimit.get(), editor::zoom()
                     )
                 );
             }
@@ -225,7 +225,7 @@ class $modify(FindObjectPopupHook, FindObjectPopup) {
         editor::update();
 
         if (Settings::closeOnSelect) {
-            this->onClose(nullptr);
+            static_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("close-button"))->activate();
         }
     }
 
@@ -237,3 +237,7 @@ class $modify(FindObjectPopupHook, FindObjectPopup) {
         m_fields->findGroups = !m_fields->findGroups;
     }
 };
+
+$on_mod(Loaded) {
+	SettingsManager::get()->load();
+}
