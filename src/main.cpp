@@ -17,12 +17,22 @@ enum class SearchMode {
     AllInputs
 };
 
-// very very silly but wtv makes storing shit in tags easier
 enum class FindType {
-    Group = enum_cast<int>(editor::trigger::InputType::Group),
-    Item = enum_cast<int>(editor::trigger::InputType::Item),
-    Collision = enum_cast<int>(editor::trigger::InputType::Collision)
+    Group = 0,
+    Item = 1,
+    Collision = 2
 };
+// lol it works so :3c
+namespace nwo5::utils {
+    template<>
+    constexpr editor::trigger::InputType enum_cast(FindType pEnum) {
+        switch (pEnum) {
+            case FindType::Group: return editor::trigger::InputType::Group;
+            case FindType::Item: return editor::trigger::InputType::Item;
+            case FindType::Collision: return editor::trigger::InputType::Collision;
+        }
+    }
+}
 
 static auto getSearchMode() {
     static std::unordered_map<std::string, SearchMode> map{
@@ -69,6 +79,10 @@ class $modify(FindObjectPopupHook, FindObjectPopup) {
             trigger::primaryInputType(pObj) == type ? trigger::primaryInput(pObj) : 0,
             trigger::secondaryInputType(pObj) == type ? trigger::secondaryInput(pObj) : 0,
         };
+
+        if (Settings::logs) {
+            log::error("{} | {}, {}, {}, {}", pObj->m_objectID, ids[0], ids[1], ids[2], ids[3]);
+        }
 
         switch (pSearchMode) {
             case SearchMode::All: {

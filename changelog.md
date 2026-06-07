@@ -1,3 +1,9 @@
+## v2.0.1
+**Fixed**
+
+- node ids dependency missing in the big 26
+- a bunch of searching logic being wrong
+
 ## v2.0.0
 **Added** 
 

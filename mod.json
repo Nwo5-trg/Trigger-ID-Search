@@ -8,7 +8,7 @@
 	},
 	"id": "nwo5.trigger_id_search",
 	"name": "Trigger ID Search",
-	"version": "v2.0.0",
+	"version": "v2.0.1",
 	"developer": "Nwo5",
 	"description": "find stuff by id but better !",
 	"tags": ["editor", "utility", "enhancement", "offline"],
@@ -17,7 +17,8 @@
 		"community": "https://discord.gg/AeFeYWGUxZ"
 	},
 	"dependencies": {
-		"nwo5.silly-api": ">=1.5.0"
+		"nwo5.silly-api": ">=1.5.0",
+		"geode.node-ids": ">=1.23.0"
 	},
 	"resources": {
 		"sprites": [
@@ -73,6 +74,12 @@
 			"name": "Close On Select",
 			"default": true,
 			"description": "close popup after searching"
+		},
+		"logs": {
+			"type": "bool",
+			"name": "Debug Logs",
+			"default": false,
+			"description": "u prolly dont wanna turn on"
 		}
 	}
 }

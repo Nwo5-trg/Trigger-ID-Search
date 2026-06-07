@@ -26,3 +26,4 @@ by default if u have any selected objs that will act as a filter and the mod wil
 ## Credits
 - ***CarlIsBored*** (on the gd modding discord server) for the mod idea
 - ***Rue*** for all the fire assets and logo
+- ***Sandboxer*** a bunch of bug reports and testing
