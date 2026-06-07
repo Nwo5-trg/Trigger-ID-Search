@@ -17,7 +17,7 @@
 		"community": "https://discord.gg/AeFeYWGUxZ"
 	},
 	"dependencies": {
-		"nwo5.silly-api": ">=1.5.0",
+		"nwo5.silly-api": ">=1.5.1",
 		"geode.node-ids": ">=1.23.0"
 	},
 	"resources": {
