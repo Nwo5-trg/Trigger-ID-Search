@@ -53,6 +53,10 @@ class $modify(FindObjectPopupHook, FindObjectPopup) {
     static bool filterObject(GameObject* pObj, SearchMode pSearchMode, FindType pType, bool pFindGroup, int pID) {
         namespace trigger = editor::trigger;
 
+        if (!pID) {
+            return false;
+        }
+
         if (pFindGroup) {
             switch (pType) {
                 case FindType::Group: {
@@ -81,7 +85,7 @@ class $modify(FindObjectPopupHook, FindObjectPopup) {
         };
 
         if (Settings::logs) {
-            log::error("{} | {}, {}, {}, {}", pObj->m_objectID, ids[0], ids[1], ids[2], ids[3]);
+            log::debug("{} | {}, {}, {}, {}", pObj->m_objectID, ids[0], ids[1], ids[2], ids[3]);
         }
 
         switch (pSearchMode) {
@@ -180,10 +184,20 @@ class $modify(FindObjectPopupHook, FindObjectPopup) {
     void onFindTriggers(CCObject* pSender) {
         const auto type = enum_cast<FindType>(pSender->getTag());
 
-        const auto split = string::splitView(std::string(m_inputNode->getString().c_str()), ",");
+        const auto split = string::splitView(std::string_view(m_inputNode->getString().c_str()), ",");
         const auto groups = std::ranges::to<std::vector>(
-            std::views::transform(split, [] (const auto& pStr) { return utils::numFromString<int>(pStr).unwrapOrDefault(); })
+            std::views::transform(split, [] (const auto& pStr) {
+                return utils::numFromString<int>(pStr).unwrapOr(0);
+            })
         );
+
+        if (Settings::logs) {
+            log::debug("searching ids");
+            for (auto group : groups) {
+                log::debug("{}", group);
+            }
+            log::debug("string\n{}", std::string_view(m_inputNode->getString().c_str()));
+        }
 
         const auto findGroups = m_fields->findGroups;
         const auto searchMode = getSearchMode();
