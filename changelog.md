@@ -1,3 +1,12 @@
+## v2.1.0
+**Added**
+
+- find menu
+
+**Fixed**
+
+- more search logic things
+
 ## v2.0.1
 **Fixed**
 

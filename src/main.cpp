@@ -2,6 +2,7 @@
 #include <nwo5.silly-api/include/include.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include "settings.hpp"
+#include "find-menu.hpp"
 #include <ranges>
 
 using namespace nwo5::prelude;
@@ -83,10 +84,6 @@ class $modify(FindObjectPopupHook, FindObjectPopup) {
             trigger::primaryInputType(pObj) == type ? trigger::primaryInput(pObj) : 0,
             trigger::secondaryInputType(pObj) == type ? trigger::secondaryInput(pObj) : 0,
         };
-
-        if (Settings::logs) {
-            log::debug("{} | {}, {}, {}, {}", pObj->m_objectID, ids[0], ids[1], ids[2], ids[3]);
-        }
 
         switch (pSearchMode) {
             case SearchMode::All: {
@@ -191,14 +188,6 @@ class $modify(FindObjectPopupHook, FindObjectPopup) {
             })
         );
 
-        if (Settings::logs) {
-            log::debug("searching ids");
-            for (auto group : groups) {
-                log::debug("{}", group);
-            }
-            log::debug("string\n{}", std::string_view(m_inputNode->getString().c_str()));
-        }
-
         const auto findGroups = m_fields->findGroups;
         const auto searchMode = getSearchMode();
 
@@ -231,22 +220,14 @@ class $modify(FindObjectPopupHook, FindObjectPopup) {
         }
         else {
             if (Settings::includeCurrentSelection && !selectionFilter) {
-                editor::selection::add(foundObjs);
+                editor::selection::add(foundObjs, true, true, true, true);
             }
             else {
-                editor::selection::set(foundObjs);
+                editor::selection::set(foundObjs, true, true, true, true);
             }
 
             if (Settings::moveCameraToSelection) {
-                const auto bounds = editor::object::bounds(foundObjs);
-
-                editor::move(bounds.origin + bounds.size / 2);
-                editor::setZoom(
-                    std::clamp(
-                        (CCDirector::get()->getWinSize().width / bounds.size.width) / 1.5f, 
-                        Settings::zoomLimit.get(), editor::zoom()
-                    )
-                );
+                editor::object::moveTo(foundObjs, true, 1.5f, Settings::zoomLimit, editor::zoom());
             }
         }
 
@@ -254,6 +235,10 @@ class $modify(FindObjectPopupHook, FindObjectPopup) {
 
         if (Settings::closeOnSelect) {
             static_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("close-button"))->activate();
+        }
+
+        if (Settings::findMenu) {
+            TriggerIDSearch::showFindMenu(foundObjs);
         }
     }
 

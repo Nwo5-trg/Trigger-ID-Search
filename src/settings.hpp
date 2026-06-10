@@ -10,8 +10,9 @@ namespace Settings {
     inline Setting<bool> autoDelete{"auto-delete"};
     inline Setting<bool> includeCurrentSelection{"include-current-selection"};
     inline Setting<bool> useSelectionAsFilter{"use-selection-as-filter"};
+    inline Setting<bool> findMenu{"find-menu"};
+    inline Setting<float> findMenuClustering{"find-menu-clustering"};
     inline Setting<bool> moveCameraToSelection{"move-camera-to-selection"};
     inline Setting<float> zoomLimit{"zoom-limit"};
     inline Setting<bool> closeOnSelect{"close-on-select"};
-    inline Setting<bool> logs{"logs"};
 }

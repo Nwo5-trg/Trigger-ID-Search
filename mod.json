@@ -8,7 +8,7 @@
 	},
 	"id": "nwo5.trigger_id_search",
 	"name": "Trigger ID Search",
-	"version": "v2.0.1",
+	"version": "v2.1.0",
 	"developer": "Nwo5",
 	"description": "find stuff by id but better !",
 	"tags": ["editor", "utility", "enhancement", "offline"],
@@ -17,8 +17,12 @@
 		"community": "https://discord.gg/AeFeYWGUxZ"
 	},
 	"dependencies": {
-		"nwo5.silly-api": ">=1.5.1",
-		"geode.node-ids": ">=1.23.0"
+		"nwo5.silly-api": ">=1.6.0",
+		"geode.node-ids": ">=1.23.0",
+		"alphalaneous.tinker": {
+			"version": ">=v1.0.17",
+			"required": false
+		}
 	},
 	"resources": {
 		"sprites": [
@@ -57,6 +61,19 @@
 			"default": true,
 			"description": "only search for objects in selection if this is enabled (if no objs are selected then search all objs)"
 		},
+		"find-menu": {
+			"type": "bool",
+			"name": "Find Menu",
+			"default": true,
+			"description": "whether to show find menu after finding objects"
+		},
+		"find-menu-clustering": {
+			"type": "float",
+			"name": "Find Menu Clustering",
+			"default": 90,
+			"description": "clustering distance for find menu, set to 0 to disable clustering",
+			"enable-if": "find-menu"
+		},
 		"move-camera-to-selection": {
 			"type": "bool",
 			"name": "Move Camera To Selection",
@@ -74,12 +91,6 @@
 			"name": "Close On Select",
 			"default": true,
 			"description": "close popup after searching"
-		},
-		"logs": {
-			"type": "bool",
-			"name": "Debug Logs",
-			"default": false,
-			"description": "u prolly dont wanna turn on"
 		}
 	}
 }
