@@ -7,7 +7,6 @@ namespace TriggerIDSearch {
 
         std::vector<std::vector<GameObject*>> m_objs;
         size_t m_index = 0;
-        float m_zoom = 1.0f;
 
         bool m_enabled = false;
 

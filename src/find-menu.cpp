@@ -62,7 +62,7 @@ namespace TriggerIDSearch {
 
         m_label->setString(fmt::format("{}/{}", pIndex + 1, m_objs.size()).c_str());
 
-        editor::object::moveTo(m_objs[pIndex], true, 1.5f, Settings::zoomLimit, m_zoom);
+        editor::object::moveTo(m_objs[pIndex], true, 1.5f, Settings::zoomLimit, editor::zoom());
         editor::selection::set(m_objs[pIndex], true, true, true, true);
         editor::update();
     }
@@ -86,7 +86,6 @@ namespace TriggerIDSearch {
 
         m_enabled = true;
         m_objs.clear();
-        m_zoom = editor::zoom();
         editor::object::cluster(m_objs, pObjs, Settings::findMenuClustering);
 
         showIndex(m_index = 0);
