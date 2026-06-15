@@ -74,7 +74,7 @@ class $modify(FindObjectPopupHook, FindObjectPopup) {
 
         const auto type = enum_cast<trigger::InputType>(pType);
 
-        if (!trigger::is(pObj) || pObj->m_objectID == trigger::COUNTER_LABEL || pObj->m_objectID == trigger::COLLISION_BLOCK) {
+        if (trigger::type(pObj) == trigger::ObjectType::Normal || pObj->m_objectID == trigger::COUNTER_LABEL || pObj->m_objectID == trigger::COLLISION_BLOCK) {
             return false;
         }
 
