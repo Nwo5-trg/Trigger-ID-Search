@@ -1,7 +1,8 @@
 ## v2.1.3
 **Fixed**
 
-- old tinker thing remind me to update this when my mods done
+- old tinker thing
+- new ui scale thing
 
 ## v2.1.2
 **Fixed**

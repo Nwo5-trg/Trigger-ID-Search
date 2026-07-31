@@ -1,5 +1,6 @@
 #include <Geode/modify/EditorUI.hpp>
 #include <nwo5.silly-api/include/include.hpp>
+#include <nwo5.ui-scaling/include/include.hpp>
 #include "find-menu.hpp"
 #include "settings.hpp"
 
@@ -135,9 +136,11 @@ class $modify(FindMenuEditorUI, EditorUI) {
             .parent(this)
         );
 
-        updateFindMenuPosition();
+        this->updateFindMenuPosition(1.0f);
 
-        // reminder to support my ui scailing whenever
+        this->addEventListener(nwo5::uiscaling::EditorUIScaleChanged(), [this] (float pScale) {
+            this->updateFindMenuPosition(pScale);
+        });
         
         return true;
     }
@@ -159,7 +162,7 @@ class $modify(FindMenuEditorUI, EditorUI) {
         }
     }
     
-    void updateFindMenuPosition() {
+    void updateFindMenuPosition(float pScale) {
         auto menu = m_fields->findMenu;
 
         if (!menu) {
@@ -167,10 +170,10 @@ class $modify(FindMenuEditorUI, EditorUI) {
         }
 
         Setup(menu)
-            .scale(1.0f)
+            .scale(pScale)
             .pos(
                 CCDirector::get()->getWinSize().width / 2, 
-                (m_toolbarHeight + menu->getScaledContentHeight() / 2) + (5.0f * 1.0f)
+                (m_toolbarHeight + menu->getScaledContentHeight() / 2) + (5.0f * pScale)
             );
     }
 };
