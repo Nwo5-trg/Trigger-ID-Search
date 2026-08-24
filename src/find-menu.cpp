@@ -15,42 +15,42 @@ namespace TriggerIDSearch {
 
         Setup(this)
             .size(ARROW_GAP * 2 + ARROW_SIZE, LABEL_SIZE + BUTTON_SIZE + GAP)
+            .layout(ui::row()
+                .alignment(AxisAlignment::Center)
+                .gap(ARROW_GAP)
+                .autoScale(false)
+                .grow(false)
+            )
             .ignoreAnchorForPos(false)
-            .visible(false);
+            .visible(false)
+            .children(
+                ui::buttonFrame(
+                    ui::frame::PINK_ARROW, this, menu_selector(FindMenu::onPrevious)
+                )
+                    .id("prev-layer-button"_spr)
+                    .scaleToFit(ARROW_SIZE)
+                    .parent(this),
+                ui::button(
+                    ButtonSprite::create("ok"), this, menu_selector(FindMenu::onHide)
+                )
+                    .id("ok-button"_spr)
+                    .layoutAnchor(Anchor::Center)
+                    .scaleHeightToFit(BUTTON_SIZE)
+                    .parent(this),
+                ui::buttonFrame(
+                    ui::frame::PINK_ARROW, this, menu_selector(FindMenu::onNext)
+                )
+                    .id("next-layer-button"_spr)
+                    .scaleToFit(ARROW_SIZE)
+                    .flipX()
+                    .parent(this)
+            );
 
-        m_label = ui::node(Setup(ui::label(" "))
+        m_label = ui::label(" ")
             .id("current-index-label"_spr)
-            .pos(getContentWidth() / 2, BUTTON_SIZE + GAP + LABEL_SIZE / 2)
+            .pos(ui::w(this) / 2, BUTTON_SIZE + GAP + LABEL_SIZE / 2)
             .scaleHeightToFit(LABEL_SIZE)
-            .parent(this)
-        );
-
-        auto next = ui::node(Setup(ui::buttonFrame(
-            "GJ_arrow_03_001.png", this, menu_selector(FindMenu::onNext)
-        ))
-            .id("next-layer-button"_spr)
-            .scaleToFit(ARROW_SIZE)
-            .flipX()
-            .right(m_label, ARROW_GAP)
-            .parent(this)
-        );
-        auto prev = ui::node(Setup(ui::buttonFrame(
-            "GJ_arrow_03_001.png", this, menu_selector(FindMenu::onPrevious)
-        ))
-            .id("prev-layer-button"_spr)
-            .scaleToFit(ARROW_SIZE)
-            .left(m_label, ARROW_GAP)
-            .parent(this)
-        );
-
-        auto okButton = ui::node(Setup(ui::button(
-            ButtonSprite::create("ok"), this, menu_selector(FindMenu::onHide)
-        ))
-            .id("ok-button"_spr)
-            .pos(getContentWidth() / 2, BUTTON_SIZE / 2)
-            .scaleHeightToFit(BUTTON_SIZE)
-            .parent(this)
-        );
+            .parent(this);
 
         return true;
     }
@@ -60,7 +60,7 @@ namespace TriggerIDSearch {
             return;
         }
 
-        m_label->setString(fmt::format("{}/{}", pIndex + 1, m_objs.size()).c_str());
+        m_label->setText(fmt::format("{}/{}", pIndex + 1, m_objs.size()));
 
         editor::object::moveTo(m_objs[pIndex], true, 1.5f, Settings::zoomLimit, editor::zoom());
         editor::selection::set(m_objs[pIndex], true, true, true, true);
@@ -68,13 +68,13 @@ namespace TriggerIDSearch {
     }
 
     void FindMenu::onHide(CCObject*) {
-        hide();
+        this->hide();
     }
     void FindMenu::onNext(CCObject*) {
-        showIndex(m_index = (m_index + 1 == m_objs.size() ? 0 : m_index + 1));
+        this->showIndex(m_index = (m_index + 1 == m_objs.size() ? 0 : m_index + 1));
     }
     void FindMenu::onPrevious(CCObject*) {
-        showIndex(m_index = (!m_index ? m_objs.size() - 1 : m_index - 1));
+        this->showIndex(m_index = (!m_index ? m_objs.size() - 1 : m_index - 1));
     }
 
     void FindMenu::show(CCArray* pObjs) {
@@ -82,20 +82,20 @@ namespace TriggerIDSearch {
             return;
         }
 
-        setVisible(true);
+        this->setVisible(true);
 
         m_enabled = true;
         m_objs.clear();
         editor::object::cluster(m_objs, pObjs, Settings::findMenuClustering);
 
-        showIndex(m_index = 0);
+        this->showIndex(m_index = 0);
 
         if (m_objs.size() <= 1) {
             hide();
         }
     }
     void FindMenu::hide() {
-        setVisible(false);
+        this->setVisible(false);
 
         m_objs.clear();
         m_enabled = false;
@@ -173,7 +173,7 @@ class $modify(FindMenuEditorUI, EditorUI) {
             .scale(pScale)
             .pos(
                 CCDirector::get()->getWinSize().width / 2, 
-                (m_toolbarHeight + menu->getScaledContentHeight() / 2) + (5.0f * pScale)
+                (m_toolbarHeight + ui::sh(menu) / 2) + (5.0f * pScale)
             );
     }
 };

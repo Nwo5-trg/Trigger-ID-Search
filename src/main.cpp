@@ -23,6 +23,7 @@ enum class FindType {
     Item = 1,
     Collision = 2
 };
+
 // lol it works so :3c
 namespace nwo5::utils {
     template<>
@@ -52,8 +53,6 @@ class $modify(FindObjectPopupHook, FindObjectPopup) {
     };
 
     static bool filterObject(GameObject* pObj, SearchMode pSearchMode, FindType pType, bool pFindGroup, int pID) {
-        namespace trigger = editor::trigger;
-
         if (!pID) {
             return false;
         }
@@ -121,53 +120,53 @@ class $modify(FindObjectPopupHook, FindObjectPopup) {
             return true;
         }
 
-        auto menu = ui::node(Setup(ui::menu(ui::verticalDistrbLayout(2.5f)))
+        auto menu = *ui::menu(ui::column()
+            .alignment(AxisAlignment::Start)
+            .gap(2.5f)
+            .autoScale(false)
+            .grow(true)
+        )
             .id("button-menu"_spr)
             .pos(
                 bg->getPosition() + (ccp(bg->getScaledContentWidth(), -bg->getScaledContentHeight()) / 2) 
                 + ccp(-5.0f, 5.0f)
             )
             .anchor(1.0f, 0.0f)
-            .parent(m_mainLayer)
-        );
+            .parent(m_mainLayer);
         // gah
         menu->setTouchPriority(-510);
 
         for (int i = 0; i < 3; i++) {
-            auto button = ui::node(Setup(ui::buttonSprite(
+            ui::buttonSprite(
                 fmt::format("button{}.png"_spr, i), this, menu_selector(FindObjectPopupHook::onFindTriggers)
-            ))
+            )
                 .id("button-{}"_spr, i)
                 .scaleToFit(30.0f)
                 .tag(i)
-                .parent(menu)
-            );
+                .parent(menu);
         }
 
-        auto findGroupsToggle = ui::node(Setup(ui::togglerBase(
+        ui::togglerBase(
             this, menu_selector(FindObjectPopupHook::onToggleFindGroups)
-        ))
+        )
             .id("find-groups-toggle"_spr)
             .pos(
-                bg->getPosition() - (bg->getScaledContentSize() / 2) 
-                - m_buttonMenu->getPosition() + ccp(20.0f, 20.0f)
+                ui::pos(bg) - ui::ssize(bg) / 2 
+                - ui::pos(m_buttonMenu) + ccp(20.0f, 20.0f)
             )
             .scaleToFit(30.0f)
-            .parent(m_buttonMenu)
-        );
+            .parent(m_buttonMenu);
 
-        auto settingsButton = ui::node(Setup(ui::buttonFrame(
-                "GJ_optionsBtn_001.png", this, menu_selector(FindObjectPopupHook::onIDSearchSettings)
-            ))
-                .id("id-seach-settings-button"_spr)
-                // remind me to make a better system for positioning in popups with setup cuz this is js wacky
-                .pos(
-                    bg->getPosition() + (bg->getScaledContentSize() / 2) 
-                    - m_buttonMenu->getPosition() - ccp(20.0f, 20.0f)
-                )
-                .scaleToFit(30.0f)
-                .parent(m_buttonMenu)
-            );
+        ui::buttonFrame(
+            "GJ_optionsBtn_001.png", this, menu_selector(FindObjectPopupHook::onIDSearchSettings)
+        )
+            .id("id-seach-settings-button"_spr)
+            .pos(
+                ui::pos(bg) + ui::ssize(bg) / 2
+                - ui::pos(m_buttonMenu) - ccp(20.0f, 20.0f)
+            )
+            .scaleToFit(30.0f)
+            .parent(m_buttonMenu);
 
         m_inputNode->setAllowedChars("1234567890,");
         m_inputNode->setMaxLabelLength(9999);
@@ -182,11 +181,11 @@ class $modify(FindObjectPopupHook, FindObjectPopup) {
         const auto type = enum_cast<FindType>(pSender->getTag());
 
         const auto split = string::splitView(std::string_view(m_inputNode->getString().c_str()), ",");
-        const auto groups = std::ranges::to<std::vector>(
-            std::views::transform(split, [] (const auto& pStr) {
+        const auto groups = split
+            | std::views::transform([] (const auto& pStr) {
                 return utils::numFromString<int>(pStr).unwrapOr(0);
             })
-        );
+            | std::ranges::to<std::vector>();
 
         const auto findGroups = m_fields->findGroups;
         const auto searchMode = getSearchMode();

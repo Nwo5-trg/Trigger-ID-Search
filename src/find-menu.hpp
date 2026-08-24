@@ -3,7 +3,7 @@
 namespace TriggerIDSearch {
     class FindMenu : public cocos2d::CCMenu {
     protected:
-        cocos2d::CCLabelBMFont* m_label = nullptr;
+        geode::Label* m_label = nullptr;
 
         std::vector<std::vector<GameObject*>> m_objs;
         size_t m_index = 0;
