@@ -34,7 +34,6 @@ namespace TriggerIDSearch {
                     ButtonSprite::create("ok"), this, menu_selector(FindMenu::onHide)
                 )
                     .id("ok-button"_spr)
-                    .layoutAnchor(Anchor::Center)
                     .scaleHeightToFit(BUTTON_SIZE)
                     .parent(this),
                 ui::buttonFrame(
