@@ -45,7 +45,7 @@ namespace TriggerIDSearch {
                     .parent(this)
             );
 
-        m_label = ui::label(" ")
+        m_label = ui::label(" ", Font::Default)
             .id("current-index-label"_spr)
             .pos(ui::w(this) / 2, BUTTON_SIZE + GAP + LABEL_SIZE / 2)
             .scaleHeightToFit(LABEL_SIZE)
@@ -130,10 +130,9 @@ class $modify(FindMenuEditorUI, EditorUI) {
             return false;
         }
 
-        m_fields->findMenu = ui::node(Setup(TriggerIDSearch::FindMenu::create())
+        m_fields->findMenu = Setup(TriggerIDSearch::FindMenu::create())
             .id("find-menu"_spr)
-            .parent(this)
-        );
+            .parent(this);
 
         this->updateFindMenuPosition(1.0f);
 
