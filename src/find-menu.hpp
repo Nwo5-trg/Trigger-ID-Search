@@ -22,7 +22,7 @@ namespace TriggerIDSearch {
         static constexpr float BUTTON_SIZE = 15.0f;
         static constexpr float ARROW_SIZE = 20.0f;
         static constexpr float GAP = 10.0f;
-        static constexpr float ARROW_GAP = 50.0f;
+        static constexpr float ARROW_GAP = 10.0f;
 
     public:
         void show(cocos2d::CCArray* pObjs);

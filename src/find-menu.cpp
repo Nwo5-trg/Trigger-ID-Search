@@ -5,6 +5,7 @@
 #include "settings.hpp"
 
 using namespace geode::prelude;
+using namespace nwo5::uiscaling::prelude;
 using namespace nwo5::prelude;
 
 namespace TriggerIDSearch {
@@ -14,41 +15,48 @@ namespace TriggerIDSearch {
         }
 
         Setup(this)
-            .size(ARROW_GAP * 2 + ARROW_SIZE, LABEL_SIZE + BUTTON_SIZE + GAP)
-            .layout(ui::row()
-                .alignment(AxisAlignment::Center)
-                .gap(ARROW_GAP)
+            .layout(ui::column()
+                .alignment(AxisAlignment::Start)
+                .gap(GAP)
                 .autoScale(false)
                 .grow(false)
             )
+            .size(ARROW_GAP * 2 + ARROW_SIZE, LABEL_SIZE + BUTTON_SIZE + GAP)
             .ignoreAnchorForPos(false)
-            .visible(false)
+            .visible(false);
+
+        ui::button(
+            ButtonSprite::create("ok"), this, menu_selector(FindMenu::onHide)
+        )
+            .id("ok-button"_spr)
+            .scaleHeightToFit(BUTTON_SIZE)
+            .parent(this);
+
+        m_label = ui::label(" ", Font::Default)
+            .id("current-index-label"_spr)
+            .scaleHeightToFit(LABEL_SIZE);
+
+        ui::menu(ui::row()
+            .alignment(AxisAlignment::Center)
+            .gap(ARROW_GAP)
+            .autoScale(false)
+            .grow(false)
+        )
+            .id("menu"_spr)
             .children(
                 ui::buttonFrame(
                     ui::frame::PINK_ARROW, this, menu_selector(FindMenu::onPrevious)
                 )
                     .id("prev-layer-button"_spr)
-                    .scaleToFit(ARROW_SIZE)
-                    .parent(this),
-                ui::button(
-                    ButtonSprite::create("ok"), this, menu_selector(FindMenu::onHide)
-                )
-                    .id("ok-button"_spr)
-                    .scaleHeightToFit(BUTTON_SIZE)
-                    .parent(this),
+                    .scaleToFit(ARROW_SIZE),
+                m_label,
                 ui::buttonFrame(
                     ui::frame::PINK_ARROW, this, menu_selector(FindMenu::onNext)
                 )
                     .id("next-layer-button"_spr)
                     .scaleToFit(ARROW_SIZE)
                     .flipX()
-                    .parent(this)
-            );
-
-        m_label = ui::label(" ", Font::Default)
-            .id("current-index-label"_spr)
-            .pos(ui::w(this) / 2, BUTTON_SIZE + GAP + LABEL_SIZE / 2)
-            .scaleHeightToFit(LABEL_SIZE)
+            )
             .parent(this);
 
         return true;
@@ -87,6 +95,9 @@ namespace TriggerIDSearch {
         m_objs.clear();
         editor::object::cluster(m_objs, pObjs, Settings::findMenuClustering);
 
+        m_label->setText(fmt::format("{0}/{0}", m_objs.size()));
+        m_label->getParent()->updateLayout();
+        
         this->showIndex(m_index = 0);
 
         if (m_objs.size() <= 1) {
@@ -136,7 +147,7 @@ class $modify(FindMenuEditorUI, EditorUI) {
 
         this->updateFindMenuPosition(1.0f);
 
-        this->addEventListener(nwo5::uiscaling::EditorUIScaleChanged(), [this] (float pScale) {
+        this->addEventListener(uiscaling::EditorUI::Changed(), [this] (float pScale) {
             this->updateFindMenuPosition(pScale);
         });
         
