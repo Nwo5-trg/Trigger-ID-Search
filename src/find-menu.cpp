@@ -1,6 +1,7 @@
 #include <Geode/modify/EditorUI.hpp>
 #include <nwo5.silly-api/include/include.hpp>
 #include <nwo5.ui-scaling/include/include.hpp>
+#include <nwo5.ui-scaling/include/compat.hpp>
 #include "find-menu.hpp"
 #include "settings.hpp"
 
@@ -145,9 +146,7 @@ class $modify(FindMenuEditorUI, EditorUI) {
             .id("find-menu"_spr)
             .parent(this);
 
-        this->updateFindMenuPosition(1.0f);
-
-        this->addEventListener(uiscaling::EditorUI::Changed(), [this] (float pScale) {
+        this->addEventListener(uiscaling::compat::EditorUI::Changed(), [this] (float pScale, auto) {
             this->updateFindMenuPosition(pScale);
         });
         

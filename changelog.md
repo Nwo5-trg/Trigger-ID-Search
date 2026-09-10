@@ -1,3 +1,8 @@
+## v2.1.5
+**Added**
+
+- support for all ui scaling mods
+
 ## v2.1.4
 - ported to new sillyapi version
 

@@ -8,7 +8,7 @@
 	},
 	"id": "nwo5.trigger_id_search",
 	"name": "Trigger ID Search",
-	"version": "v2.1.4",
+	"version": "v2.1.5",
 	"developer": "Nwo5",
 	"description": "find stuff by id but better !",
 	"tags": ["editor", "utility", "enhancement", "offline"],
@@ -20,7 +20,7 @@
 		"nwo5.silly-api": ">=2.0.0",
 		"geode.node-ids": ">=1.23.0",
 		"nwo5.ui-scaling": {
-			"version": ">=2.0.0",
+			"version": ">=2.1.0",
 			"required": false
 		}
 	},
